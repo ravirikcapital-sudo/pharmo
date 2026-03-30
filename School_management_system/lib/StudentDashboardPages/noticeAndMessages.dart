@@ -1,4 +1,8 @@
+import 'dart:ui';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:school/customWidgets/button.dart';
 import 'package:school/customWidgets/commonCustomWidget/commonMainInput.dart';
 import 'package:school/customWidgets/pagesMainHeading.dart';
@@ -12,6 +16,13 @@ class NoticesMessage extends StatefulWidget {
 }
 
 class _NoticesMessageState extends State<NoticesMessage> {
+  final ScrollController _horizontalController = ScrollController();
+
+  @override
+  void dispose() {
+    _horizontalController.dispose();
+    super.dispose();
+  }
   // Sample data - you can replace this with actual data from your backend
   final List<NoticeItem> notices = [
     NoticeItem(
@@ -112,7 +123,9 @@ class _NoticesMessageState extends State<NoticesMessage> {
                       children: [
                         _NoticesHeader(noticesCount: notices.length),
                         Expanded(
-                          child: _NoticesLayout(notices: notices),
+                          child: _NoticesLayout(
+                            notices: notices,
+                            controller: _horizontalController,),
                         ),
                         _ActionButtons(onMarkAllRead: () => _markAllAsRead(context)),
                       ],
@@ -223,8 +236,9 @@ class _NoticesHeader extends StatelessWidget {
 // Extracted Layout Widget that handles responsive layouts
 class _NoticesLayout extends StatelessWidget {
   final List<NoticeItem> notices;
+  final ScrollController controller;
 
-  const _NoticesLayout({required this.notices});
+  const _NoticesLayout({required this.notices,required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -238,22 +252,51 @@ class _NoticesLayout extends StatelessWidget {
   }
 
   Widget _buildDesktopLayout(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: EdgeInsets.all(AppThemeResponsiveness.getDefaultSpacing(context)),
-      child: Row(
-        children: notices.map((notice) {
-          return Container(
-            width: 320, // Fixed width for desktop cards
-            margin: EdgeInsets.only(
-              right: AppThemeResponsiveness.getDashboardGridCrossAxisSpacing(context),
-            ),
-            child: _NoticeCard(
-              notice: notice,
-              isDesktop: true,
-            ),
-          );
-        }).toList(),
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: {
+          PointerDeviceKind.touch,
+          PointerDeviceKind.mouse,
+        },
+      ),
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent) {
+            if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+              controller.animateTo(
+                controller.offset + 200,
+                duration: Duration(milliseconds: 300),
+                curve: Curves.ease,
+              );
+              return KeyEventResult.handled;
+            } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+              controller.animateTo(
+                controller.offset - 200,
+                duration: Duration(milliseconds: 300),
+                curve: Curves.ease,
+              );
+              return KeyEventResult.handled;
+            }
+          }
+          return KeyEventResult.ignored;
+        },
+        child: SingleChildScrollView(
+          controller: controller,
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: notices.map((notice) {
+              return Container(
+                width: 320,
+                margin: const EdgeInsets.only(right: 10),
+                child: _NoticeCard(
+                  notice: notice,
+                  isDesktop: true,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
       ),
     );
   }
@@ -326,9 +369,23 @@ class _NoticeCard extends StatelessWidget {
           ),
         ],
       ),
-      child: InkWell(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () => _showNoticeDetails(context, notice),
+        // splashColor: Colors.transparent,
+        // highlightColor: Colors.transparent,
+        child:Container(
+          height: isDesktop ?200 : null,
+          decoration: BoxDecoration(
+            color: isMobile ? Colors.grey.shade50: AppThemeColor.white,
         borderRadius: BorderRadius.circular(AppThemeResponsiveness.getCardBorderRadius(context)),
+            border: Border.all(
+              color: notice.priority == NoticePriority.high
+                  ? Colors.red.withOpacity(0.3):
+                  Colors.grey.withOpacity(0.2),
+              width: notice.priority == NoticePriority ? 2 : 1
+            )
+          ),
         child: Padding(
           padding: EdgeInsets.all(
               isMobile
@@ -339,6 +396,7 @@ class _NoticeCard extends StatelessWidget {
               ? _buildMobileCardContent(context)
               : _buildDesktopCardContent(context),
         ),
+        )
       ),
     );
   }
@@ -359,59 +417,104 @@ class _NoticeCard extends StatelessWidget {
     );
   }
 
+  // Widget _buildDesktopCardContent(BuildContext context) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Row(
+  //         children: [
+  //           _NoticeIcon(notice: notice),
+  //           const Spacer(),
+  //           _PriorityBadge(priority: notice.priority),
+  //         ],
+  //       ),
+  //       SizedBox(height: AppThemeResponsiveness.getMediumSpacing(context)),
+  //       Expanded(
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Text(
+  //               notice.title,
+  //               style: AppThemeResponsiveness.getGridItemTitleStyle(context).copyWith(
+  //                 fontSize: AppThemeResponsiveness.getResponsiveFontSize(context, 14),
+  //               ),
+  //               maxLines: 2,
+  //               overflow: TextOverflow.ellipsis,
+  //             ),
+  //             const Spacer(),
+  //             Row(
+  //               children: [
+  //                 Icon(
+  //                   Icons.access_time,
+  //                   size: AppThemeResponsiveness.getIconSize(context) * 0.6,
+  //                   color: Colors.grey.shade500,
+  //                 ),
+  //                 SizedBox(width: AppThemeResponsiveness.getSmallSpacing(context) / 2),
+  //                 Expanded(
+  //                   child: Text(
+  //                     notice.time,
+  //                     style: AppThemeResponsiveness.getGridItemSubtitleStyle(context),
+  //                     overflow: TextOverflow.ellipsis,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+
   Widget _buildDesktopCardContent(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min, // Isse column sirf utni jagah lega jitni zaroorat hai
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // 1. Apne Top Row (Icons/Badge) ko Flexible ya constrained rakhein
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _NoticeIcon(notice: notice),
-            const Spacer(),
+            Flexible(child: _NoticeIcon(notice: notice)),
             _PriorityBadge(priority: notice.priority),
           ],
         ),
-        SizedBox(height: AppThemeResponsiveness.getMediumSpacing(context)),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                notice.title,
-                style: AppThemeResponsiveness.getGridItemTitleStyle(context).copyWith(
-                  fontSize: AppThemeResponsiveness.getResponsiveFontSize(context, 14),
-                ),
-                maxLines: 2,
+
+        const SizedBox(height: 4), // Spacing kam karein
+
+        // 2. Title ko 'Flexible' mein wrap karein aur maxLines limit karein
+        Flexible(
+          child: Text(
+            notice.title,
+            style: TextStyle(fontSize: 12), // Size thoda chota rakhein testing ke liye
+            maxLines: 1, // Agar space kam hai toh sirf 1 line dikhayein
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+
+        // 3. Time section
+        Row(
+          children: [
+            Icon(Icons.access_time, size: 12, color: Colors.grey),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                notice.time,
+                style: TextStyle(fontSize: 10),
                 overflow: TextOverflow.ellipsis,
               ),
-              const Spacer(),
-              Row(
-                children: [
-                  Icon(
-                    Icons.access_time,
-                    size: AppThemeResponsiveness.getIconSize(context) * 0.6,
-                    color: Colors.grey.shade500,
-                  ),
-                  SizedBox(width: AppThemeResponsiveness.getSmallSpacing(context) / 2),
-                  Expanded(
-                    child: Text(
-                      notice.time,
-                      style: AppThemeResponsiveness.getGridItemSubtitleStyle(context),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
   }
-
   void _showNoticeDetails(BuildContext context, NoticeItem notice) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      enableDrag: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _NoticeDetailsSheet(notice: notice),
     );

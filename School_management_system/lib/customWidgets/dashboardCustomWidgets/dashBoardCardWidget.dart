@@ -34,47 +34,58 @@ class DashboardCard extends StatelessWidget {
             padding: EdgeInsets.all(padding),
             child: Stack(
               children: [
-                SizedBox.expand(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: item.color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(16),
+                // SizedBox.expand(
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          flex: 3,
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: item.color.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: FittedBox(
+                              child: Icon(
+                                item.icon,
+                                size: 28,
+                                color: item.color,
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Icon(
-                          item.icon,
-                          size: 28,
-                          color: item.color,
+                        const SizedBox(height: 12),
+                        // Container(
+                        //   width: double.infinity,
+                        //   child: 
+                          Flexible(
+                            flex: 2,
+                            child: Text(
+                              item.title,
+                              style: AppThemeResponsiveness.getDashboardCardTitleStyle(context),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        // ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          child: Text(
+                            item.subtitle,
+                            style: AppThemeResponsiveness.getDashboardCardSubtitleStyle(context),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        width: double.infinity,
-                        child: Text(
-                          item.title,
-                          style: AppThemeResponsiveness.getDashboardCardTitleStyle(context),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: double.infinity,
-                        child: Text(
-                          item.subtitle,
-                          style: AppThemeResponsiveness.getDashboardCardSubtitleStyle(context),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                      ],
+                    // ),
                   ),
                 ),
                 if (item.badge != null)

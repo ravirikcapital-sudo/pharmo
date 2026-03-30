@@ -2453,5 +2453,24 @@ class ApiService {
       throw Exception('Error fetching teachers report: $e');
     }
   }
+  // ========== PARENT API ==========
+
+  /// Get Children List
+  /// GET: /api/parents/children/
+  Future<ApiResponse<List<Map<String, dynamic>>>> getParentChildren() async {
+    return await getList<Map<String, dynamic>>(
+      '/parents/children/',
+          (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// Get Single Child Detail
+  /// GET: /api/parents/child/
+  Future<ApiResponse<Map<String, dynamic>>> getParentChild() async {
+    return await getItem<Map<String, dynamic>>(
+      '/parents/child/',
+          (data) => data,
+    );
+  }
 }
 
