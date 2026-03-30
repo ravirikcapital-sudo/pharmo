@@ -23,12 +23,17 @@ class _AdminDashboardState extends State<AdminDashboard>
   int totalClasses = 0;
   int totalEmployees = 0;
   int unreadNotifications = 0;
+  int totalTeachers = 0;//
+  int userRequestCount = 0;//
+  List userRequests = [];//
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadAdminData();
+    // _loadUserRequests();//
+    _loadTeachersCount();
   }
 
   void didChangeDependencies() {
@@ -36,6 +41,7 @@ class _AdminDashboardState extends State<AdminDashboard>
     _loadAdminDashboard();
     _loadEmployeeCount();
     _loadUnreadNotifications();
+    // _loadUserRequests();//
   }
 
   Future<void> _loadAdminData() async {
@@ -87,6 +93,35 @@ class _AdminDashboardState extends State<AdminDashboard>
       setState(() => isLoading = false);
     }
   }
+//   Future<void> _loadTeachersCount() async {
+//   try {
+//     final data = await ApiService().getTeachers();
+
+//     setState(() {
+//       totalTeachers = data.length;
+//     });
+//   } catch (e) {
+//     print("Error loading teachers: $e");
+//   }
+// }
+  Future<void> _loadTeachersCount() async {
+    try {
+      final response = await ApiService().getTeachers();
+
+      setState(() {
+        if (response.success && response.data != null) {
+          totalTeachers = response.data!.length;
+        } else {
+          totalTeachers = 0;
+        }
+      });
+    } catch (e) {
+      print("Error loading teachers count: $e");
+      setState(() {
+        totalTeachers = 0;
+      });
+    }
+  }
 
 
   Future<void> _loadEmployeeCount() async {
@@ -98,6 +133,7 @@ class _AdminDashboardState extends State<AdminDashboard>
       });
     }
   }
+
 
   Future<void> _loadUnreadNotifications() async {
     final response = await ApiService().getUnreadNotificationsCount();
@@ -314,8 +350,17 @@ class _AdminDashboardState extends State<AdminDashboard>
       child: Row(
         children: [
           QuickStatCard(
+            title: 'Total Teachers',
+            value: isLoading ? '...' : totalTeachers.toString(),
+            icon: Icons.people_rounded,
+            iconColor: Colors.blue,
+            iconBackgroundColor: Colors.blue.shade50,
+            onTap: () =>
+                Navigator.pushNamed(context, '/admin-teacher-management'),
+          ),
+          QuickStatCard(
             title: 'Total Students',
-            value: isLoading ? '1..2..3' : totalStudents.toString(),
+            value: isLoading ? '...' : totalStudents.toString(),
             icon: Icons.people_rounded,
             iconColor: Colors.blue,
             iconBackgroundColor: Colors.blue.shade50,
@@ -324,7 +369,7 @@ class _AdminDashboardState extends State<AdminDashboard>
           ),
           QuickStatCard(
             title: 'Total Employee',
-            value: isLoading ? '1..2..3' : totalEmployees.toString(),
+            value: isLoading ? '...' : totalEmployees.toString(),
             icon: Icons.school_rounded,
             iconColor: Colors.green,
             iconBackgroundColor: Colors.green.shade50,
@@ -359,7 +404,7 @@ class _AdminDashboardState extends State<AdminDashboard>
             iconBackgroundColor: Colors.red.shade50,
             onTap: () {
               Navigator.pushNamed(context, '/notifications').then((_) {
-                // Refresh notification count when returning from notifications page
+                
                 _loadUnreadNotifications();
               });
             },
@@ -455,8 +500,9 @@ class _AdminDashboardState extends State<AdminDashboard>
         Colors.deepPurple,
         () => Navigator.pushNamed(context, '/admin-user-request'),
         'Handle user requests',
-        badge: '5',
+        badge: userRequestCount > 0 ? userRequestCount.toString() : null,
       ),
+
       DashboardItem(
         'System Controls',
         Icons.settings_rounded,
@@ -501,8 +547,90 @@ class _AdminDashboardState extends State<AdminDashboard>
       ),
     ];
 
-    return DashboardGrid(items: items);
+    // return DashboardGrid(items: items);
+    return LayoutBuilder(
+    builder: (context, constraints) {
+      int crossAxisCount = 2;
+
+      if (constraints.maxWidth > 1200) {
+        crossAxisCount = 5; // desktop
+      } else if (constraints.maxWidth > 900) {
+        crossAxisCount = 4; // tablet landscape
+      } else if (constraints.maxWidth > 600) {
+        crossAxisCount = 3; // tablet
+      } else {
+        crossAxisCount = 2; // mobile
+      }
+
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: items.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.8, // 🔥 THIS FIXES OVERFLOW
+        ),
+        itemBuilder: (context, index) {
+          final item = items[index];
+
+          return InkWell(
+            onTap: item.onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 10,
+                    color: Colors.black12,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(item.icon, size: 30, color: item.color),
+                  SizedBox(height: 10),
+
+                  /// 🔥 TITLE FIX
+                  Text(
+                    item.title,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+
+                  SizedBox(height: 6),
+
+                  /// 🔥 SUBTITLE FIX
+                  Text(
+                    item.subtitle,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
   }
+  
 
   void _showQuickActionsDialog(BuildContext context) {
     return QuickActionsDialog.show(

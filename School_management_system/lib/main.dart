@@ -77,6 +77,7 @@ import 'package:school/teacherDashboardPages/teacherCampaign.dart';
 import 'package:school/teacherDashboardPages/teacherSalary.dart';
 import 'package:school/teacherDashboardPages/timeTableTeacher.dart';
 import 'academicOfficerDashboardPages/ExamManagementAcademicOfficer.dart';
+import 'package:school/AdminDashboardPages/teacherManagementPage.dart';
 
 void main() {
   runApp(MyApp());
@@ -176,6 +177,7 @@ class MyApp extends StatelessWidget {
         '/main-chat': (context) => MainChat(),
         '/settings': (context) => AppSettingsPage(),
         '/complain': (context) => ComplaintPage(),
+        '/admin-teacher-management':(context) => TeacherManagementPage(),
       },
     );
   }

@@ -422,27 +422,58 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildQuickActions() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildQuickActionButton(
-            'Change Password',
-            Icons.lock_reset_rounded,
-                () => Navigator.pushNamed(context, '/change-password'),
-          ),
-        ),
-        SizedBox(width: AppThemeResponsiveness.getSmallSpacing(context)),
-        Expanded(
-          child: _buildQuickActionButton(
-            'New Admission',
-            Icons.person_add_rounded,
-                () => Navigator.pushNamed(context, '/admission-main'),
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _buildQuickActions() {
+  //   return Row(
+  //     children: [
+  //       Expanded(
+  //         child: _buildQuickActionButton(
+  //           'Change Password',
+  //           Icons.lock_reset_rounded,
+  //               () => Navigator.pushNamed(context, '/change-password'),
+  //         ),
+  //       ),
+  //       SizedBox(width: AppThemeResponsiveness.getSmallSpacing(context)),
+  //       Expanded(
+  //         child: _buildQuickActionButton(
+  //           'New Admission',
+  //           Icons.person_add_rounded,
+  //               () => Navigator.pushNamed(context, '/admission-main'),
+  //         ),
+  //       ),
+  //       SizedBox(width: AppThemeResponsiveness.getSmallSpacing(context)),
+  //       Expanded(
+  //         child: _buildQuickActionButton(
+  //           'Create New Account',
+  //           Icons.person_add_rounded,
+  //               () => Navigator.pushNamed(context, '/main-signup'),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+Widget _buildQuickActions() {
+  return Wrap(
+    spacing: AppThemeResponsiveness.getSmallSpacing(context),
+    runSpacing: AppThemeResponsiveness.getSmallSpacing(context),
+    children: [
+      _buildQuickActionButton(
+        'Change Password',
+        Icons.lock_reset_rounded,
+        () => Navigator.pushNamed(context, '/change-password'),
+      ),
+      _buildQuickActionButton(
+        'New Admission',
+        Icons.person_add_rounded,
+        () => Navigator.pushNamed(context, '/admission-main'),
+      ),
+      _buildQuickActionButton(
+        'Create New Account',
+        Icons.person_add_rounded,
+        () => Navigator.pushNamed(context, '/main-signup'),
+      ),
+    ],
+  );
+}
 
   Widget _buildQuickActionButton(
       String title, IconData icon, VoidCallback onTap) {

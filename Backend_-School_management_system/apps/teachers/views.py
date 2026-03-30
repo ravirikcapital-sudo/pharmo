@@ -28,6 +28,7 @@ class TeacherProfileView(APIView):
 
     def get(self, request):
         teacher = request.user.teacher_profile
+        print(teacher)
         serializer = TeacherProfileSerializer(teacher)
         return Response(serializer.data)
 
