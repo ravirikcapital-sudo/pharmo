@@ -1,6 +1,6 @@
 Royal Public School Management System
 
-👨‍💻 About Me
+* About Me
 Hi, I am **Ravi Raushan**, a passionate developer focused on building scalable web and mobile applications.  
 I specialize in **Flutter (Frontend)** and **Django (Backend)** development.
 
@@ -8,7 +8,7 @@ This project is a complete **School Management System** designed to handle schoo
 
 ---
 
- 🚀 Project Overview
+ * Project Overview
 The **Royal Public School Management System** is a full-stack application that helps manage:
 
 - Student records
